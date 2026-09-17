@@ -1,0 +1,63 @@
+# Déploiement de quorex-internal sur un VPS Debian 13.
+#
+#   docker compose up -d --build                  application seule
+#   docker compose --profile proxy up -d --build  application + Caddy (HTTPS auto)
+#
+# Sans le profil « proxy », l'application n'écoute que sur 127.0.0.1 : un Caddy ou
+# un nginx déjà installé sur la machine la relaie. Avec le profil, Caddy tourne
+# dans un conteneur et prend les ports 80 et 443.
+
+name: quorex-internal
+
+services:
+  app:
+    build:
+      context: .
+    image: quorex-internal:latest
+    container_name: quorex-internal
+    restart: unless-stopped
+    init: true
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      # Le proxy est un autre conteneur : une seule couche à qui faire confiance.
+      TRUST_PROXY: "1"
+    volumes:
+      # Base, documents et sauvegardes vivent sur l'hôte, pas dans l'image.
+      - /var/lib/quorex-internal:/var/lib/quorex-internal
+    ports:
+      # Jamais exposé publiquement : le reverse proxy est le seul point d'entrée.
+      - "127.0.0.1:${PORT:-4317}:${PORT:-4317}"
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:' + (process.env.PORT || 4317) + '/api/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: quorex-caddy
+    profiles: [proxy]
+    restart: unless-stopped
+    depends_on:
+      - app
+    environment:
+      # Repris du .env : domaine servi et port interne de l'application.
+      QUOREX_DOMAIN: ${QUOREX_DOMAIN:-internal.quorex.fr}
+      PORT: ${PORT:-4317}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  caddy-data:
+  caddy-config:

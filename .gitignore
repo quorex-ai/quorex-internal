@@ -141,3 +141,14 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# quorex-internal
+node_modules/
+dist/
+.env
+*.db
+*.db-shm
+*.db-wal
+data/
+documents/
+backups/

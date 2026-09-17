@@ -1,0 +1,131 @@
+@import 'tailwindcss';
+
+/* Jetons issus de la reference de design (docs/design-ref.png). */
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
+
+  --color-canvas: #f6f7f9;
+  --color-shell: #ffffff;
+  --color-card: #ffffff;
+  --color-line: #eceef2;
+  --color-card-line: #e5e7eb;
+  --color-head: #f9fafb;
+  --color-field: #f3f4f6;
+  --color-hover: #f4f5f7;
+
+  --color-ink: #111827;
+  --color-ink-soft: #374151;
+  --color-muted: #6b7280;
+
+  --color-brand: #3b6ef6;
+  --color-brand-strong: #2f5ee0;
+
+  --color-pill-green: #c8f3c2;
+  --color-pill-green-ink: #1b5e20;
+  --color-pill-pink: #f5c6ec;
+  --color-pill-pink-ink: #7a1f5c;
+  --color-pill-blue: #bfd4ff;
+  --color-pill-blue-ink: #1e3a8a;
+  --color-pill-gray: #e8eaee;
+  --color-pill-gray-ink: #3f4652;
+
+  --text-title: 44px;
+  --text-title--line-height: 1.1;
+  --text-card: 22px;
+  --text-card--line-height: 1.3;
+  --text-date: 18px;
+  --text-body: 17px;
+  --text-body--line-height: 1.5;
+  --text-sub: 15px;
+  --text-cap: 14px;
+
+  --radius-card: 16px;
+  --radius-item: 12px;
+  --radius-button: 10px;
+}
+
+/* Mode sombre : meme structure, memes proportions, seules les surfaces changent. */
+:root[data-theme='dark'] {
+  --color-canvas: #0f1115;
+  --color-shell: #15181e;
+  --color-card: #1b1f27;
+  --color-line: #2a2f3a;
+  --color-card-line: #2a2f3a;
+  --color-head: #1f242d;
+  --color-field: #232832;
+  --color-hover: #222733;
+
+  --color-ink: #e5e7eb;
+  --color-ink-soft: #cbd2dc;
+  --color-muted: #9aa3b2;
+
+  --color-brand: #4b7bff;
+  --color-brand-strong: #3d69e8;
+
+  --color-pill-green: #1e3a22;
+  --color-pill-green-ink: #9fe39a;
+  --color-pill-pink: #46183a;
+  --color-pill-pink-ink: #f2b6e2;
+  --color-pill-blue: #1c2c55;
+  --color-pill-blue-ink: #b6caff;
+  --color-pill-gray: #262b35;
+  --color-pill-gray-ink: #c3c9d4;
+}
+
+@layer base {
+  /*
+   * La reference de design fixe des tailles absolues (titre 44 px, sidebar 310 px,
+   * lignes 64 px) dessinees sur un canevas large. Sur un ecran plus etroit, tout
+   * est remis a l'echelle proportionnellement : memes proportions, densite juste.
+   */
+  :root {
+    --app-zoom: 1;
+  }
+
+  @media (max-width: 1800px) {
+    :root {
+      --app-zoom: 0.9;
+    }
+  }
+
+  @media (max-width: 1500px) {
+    :root {
+      --app-zoom: 0.8;
+    }
+  }
+
+  @media (max-width: 1200px) {
+    :root {
+      --app-zoom: 0.75;
+    }
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+}
+
+@utility app-scale {
+  zoom: var(--app-zoom);
+  /* Les unites de viewport ne suivent pas le zoom : on les corrige. */
+  min-height: calc(100vh / var(--app-zoom));
+}
+
+@utility app-card-height {
+  min-height: calc(100vh / var(--app-zoom) - 32px);
+}

@@ -1,0 +1,17 @@
+# Reverse proxy HTTPS du conteneur Caddy (profil « proxy » de docker-compose.yml).
+# Le certificat est obtenu et renouvelé automatiquement.
+
+{$QUOREX_DOMAIN} {
+	encode zstd gzip
+
+	reverse_proxy app:{$PORT:4317}
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Robots-Tag "noindex, nofollow, noarchive"
+	}
+
+	log {
+		output stdout
+	}
+}

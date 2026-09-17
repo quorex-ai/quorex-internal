@@ -1,0 +1,32 @@
+{
+  "name": "quorex-internal",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Dashboard interne de pilotage QUOREX",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "workspaces": [
+    "shared",
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "dev": "concurrently -n shared,server,client -c gray,blue,magenta \"npm:dev:shared\" \"npm:dev:server\" \"npm:dev:client\"",
+    "dev:shared": "npm run dev -w @quorex/shared",
+    "dev:server": "npm run dev -w @quorex/server",
+    "dev:client": "npm run dev -w @quorex/client",
+    "build": "npm run build -w @quorex/shared && npm run build -w @quorex/server && npm run build -w @quorex/client",
+    "start": "node server/dist/index.js",
+    "typecheck": "npm run typecheck -w @quorex/shared && npm run typecheck -w @quorex/server && npm run typecheck -w @quorex/client",
+    "test": "npm run test -w @quorex/server",
+    "seed:users": "npm run seed:users -w @quorex/server",
+    "seed:milestones": "npm run seed:milestones -w @quorex/server",
+    "backup": "npm run backup -w @quorex/server"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.5",
+    "typescript": "^5.9.3"
+  }
+}
