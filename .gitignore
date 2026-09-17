@@ -149,6 +149,8 @@ dist/
 *.db
 *.db-shm
 *.db-wal
-data/
-documents/
-backups/
+# Ancrés à la racine : sans la barre oblique initiale, « data/ » masquerait aussi
+# server/src/data/, qui est du code source.
+/data/
+/documents/
+/backups/
