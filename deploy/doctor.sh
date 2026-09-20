@@ -98,8 +98,8 @@ titre "4. Sonde de démarrage (dans le conteneur)"
 if docker_pret; then
   echo "Chaque étape est annoncée avant d'être exécutée :"
   echo "la dernière ligne affichée est celle qui pose problème."
-  docker compose run --rm --no-deps -v "$PWD/deploy:/probe:ro" app node /probe/probe.mjs 2>&1 \
-    | grep -vE '^(Container|\[\+\])'
+  docker compose run --rm --no-deps -v "$PWD/deploy/probe.mjs:/app/probe.mjs:ro" \
+    app node /app/probe.mjs 2>&1 | grep -vE '^( *Container|\[\+\])'
   if [ "${PIPESTATUS[0]}" -ne 0 ]; then
     signaler "La sonde de démarrage échoue → voir l'étape en échec ci-dessus"
   fi
@@ -121,6 +121,16 @@ fi
 echo "ports 80 et 443 :"
 occupation=$( (ss -tlnp 2>/dev/null || netstat -tlnp 2>/dev/null) | grep -E ':80 |:443 ' )
 if [ -n "$occupation" ]; then echo "$occupation" | sed 's/^/   /'; else echo "   (personne n'écoute)"; fi
+
+if docker_pret; then
+  # « docker-proxy » ne dit pas quel conteneur : on le nomme.
+  publiants=$(docker ps --format '{{.Names}} → {{.Ports}}' 2>/dev/null | grep -E ':80->|:443->')
+  if [ -n "$publiants" ]; then
+    echo "conteneurs publiant ces ports :"
+    echo "$publiants" | sed 's/^/   /'
+    signaler "Un conteneur occupe 80/443 → docker rm -f <nom> avant de configurer nginx"
+  fi
+fi
 
 # ---------------------------------------------------------------- 6. verdict
 titre "6. Verdict"
