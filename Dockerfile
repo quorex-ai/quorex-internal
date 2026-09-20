@@ -2,9 +2,10 @@
 
 # Image de quorex-internal : un seul processus Node qui sert l'API et le front.
 # Base Debian 13 (trixie), comme le VPS.
+# Node 22 LTS : better-sqlite3 exige Node >= 22, et Node 20 est sorti de maintenance.
 
 # ---------------------------------------------------------------- construction
-FROM node:20-trixie-slim AS builder
+FROM node:22-trixie-slim AS builder
 
 # better-sqlite3 et argon2 se compilent avec node-gyp quand il n'y a pas de binaire prêt.
 RUN apt-get update \
@@ -12,10 +13,6 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-
-# Les binaires pre-compiles de better-sqlite3 et argon2 ne conviennent pas a
-# toutes les machines : on compile sur place, avec la chaine installee ci-dessus.
-ENV npm_config_build_from_source=true
 
 # Les manifestes d'abord : la couche npm ci est réutilisée tant qu'ils ne bougent pas.
 COPY package.json package-lock.json ./
@@ -35,7 +32,7 @@ RUN npm run build
 RUN npm prune --omit=dev
 
 # ------------------------------------------------------------------- exécution
-FROM node:20-trixie-slim AS runtime
+FROM node:22-trixie-slim AS runtime
 
 # tar sert au script de sauvegarde.
 RUN apt-get update \

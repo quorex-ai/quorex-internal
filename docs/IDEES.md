@@ -12,6 +12,13 @@ Ces trois points sortent du périmètre fermé du brief et ont été construits 
   jalon) depuis le kanban.
 - **Recherche ⌘K** et **enregistrement automatique** avec retour visuel.
 
+## Écarts assumés au brief
+
+- **Node 22 au lieu de Node 20.** Le brief impose Node 20, mais `better-sqlite3` exige Node 22
+  depuis sa version 13, et Node 20 est sorti de maintenance au printemps 2026. Garder Node 20
+  aurait demandé de figer la bibliothèque en 12.x sur un serveur exposé. `engines` et
+  `engine-strict` verrouillent maintenant la contrainte.
+
 ## Interface
 
 - **Notifications.** La cloche et sa pastille viennent de la référence de design. Aucune source

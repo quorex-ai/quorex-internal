@@ -8,7 +8,9 @@ Les huit sections du brief (`docs/BRIEF.md`) sont construites.
 
 ## Prérequis
 
-- Node 20 ou plus récent, npm 10 ou plus récent.
+- **Node 22 ou plus récent** (LTS), npm 10 ou plus récent. `better-sqlite3` exige Node 22 ;
+  une version inférieure fait désormais échouer l'installation (`engine-strict`) plutôt que
+  produire un binaire natif qui s'écroule au premier appel.
 - Une chaîne de compilation C++ pour `better-sqlite3` et `argon2` (`build-essential` et `python3` sur
   Debian/Ubuntu).
 - `tar` (présent sur toute distribution Linux et sur macOS) pour le script de sauvegarde.
