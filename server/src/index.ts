@@ -34,28 +34,40 @@ function ensureDocumentsDir(directory: string): void {
   }
 }
 
+/**
+ * Chaque etape s'annonce AVANT de s'executer, en ecriture synchrone : si le
+ * processus meurt d'un coup, la derniere ligne affichee nomme l'etape fautive.
+ */
+function step(label: string): void {
+  fs.writeSync(1, `[demarrage] ${label}\n`);
+}
+
 function main(): void {
+  step('lecture de la configuration');
   const env = loadEnv();
 
+  step(`dossier du coffre : ${env.DOCUMENTS_DIR}`);
   ensureDocumentsDir(env.DOCUMENTS_DIR);
 
+  step(`ouverture de la base : ${env.DATABASE_PATH}`);
   const db = openDatabase(env.DATABASE_PATH);
+
+  step('application des migrations');
   const applied = runMigrations(db);
   if (applied.length > 0) {
     console.log(`[db] migrations appliquees : ${applied.join(', ')}`);
   }
 
+  step('purge des sessions expirees');
   const purged = deleteExpiredSessions(db);
   if (purged > 0) {
     console.log(`[auth] ${purged} session(s) expiree(s) supprimee(s)`);
   }
 
+  step(`mise en ecoute sur le port ${env.PORT}`);
   const app = createApp({ db, env });
   const server = app.listen(env.PORT, () => {
-    // Un demarrage doit se lire d'un coup d'oeil : ou sont les donnees, sur quel port.
     console.log(`[http] quorex-internal ecoute sur http://127.0.0.1:${env.PORT} (${env.NODE_ENV})`);
-    console.log(`[db]   ${env.DATABASE_PATH}`);
-    console.log(`[coffre] ${env.DOCUMENTS_DIR}`);
   });
 
   const shutdown = (signal: string): void => {

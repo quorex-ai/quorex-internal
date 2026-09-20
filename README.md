@@ -156,6 +156,23 @@ route ne permet d'y écrire ou d'en effacer une ligne.
   route ne sert le dossier ni son contenu, et aucune ne le liste.
 - La suppression efface la ligne, puis le fichier, et le note au journal.
 
+## Si l'application ne démarre pas
+
+Une seule commande, elle ne modifie rien :
+
+```bash
+bash deploy/doctor.sh
+```
+
+Elle inspecte la configuration, les dossiers de données et leurs permissions, l'état du
+conteneur, ses derniers logs, puis **rejoue les étapes du démarrage une par une dans le
+conteneur** en annonçant chaque étape avant de l'exécuter. Elle termine par un verdict : un
+problème par ligne, avec la commande qui le corrige.
+
+C'est utile même quand le processus meurt sans rien écrire : la dernière étape affichée est
+celle qui a échoué. Le serveur lui-même trace désormais son démarrage de la même façon
+(`[demarrage] …`), donc `docker compose logs app` suffit souvent.
+
 ## Sauvegarde et restauration
 
 ```bash
