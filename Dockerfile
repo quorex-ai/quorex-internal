@@ -13,6 +13,10 @@ RUN apt-get update \
 
 WORKDIR /app
 
+# Les binaires pre-compiles de better-sqlite3 et argon2 ne conviennent pas a
+# toutes les machines : on compile sur place, avec la chaine installee ci-dessus.
+ENV npm_config_build_from_source=true
+
 # Les manifestes d'abord : la couche npm ci est réutilisée tant qu'ils ne bougent pas.
 COPY package.json package-lock.json ./
 COPY shared/package.json shared/

@@ -39,18 +39,33 @@ try {
   fs.mkdirSync(path.dirname(databasePath), { recursive: true });
   done();
 
-  step(5, 'ouverture de la base SQLite');
+  step(5, 'chargement de better-sqlite3');
   const Database = require('better-sqlite3');
+  done();
+
+  // Trois ouvertures de plus en plus exigeantes : si la premiere tue deja le
+  // processus, le probleme est le binaire natif, pas le montage.
+  step(6, 'base en memoire');
+  new Database(':memory:').close();
+  done();
+
+  step(7, 'base sur le disque du conteneur');
+  const local = '/tmp/doctor-probe.db';
+  new Database(local).close();
+  fs.rmSync(local, { force: true });
+  done();
+
+  step(8, 'base sur le dossier monte');
   const db = new Database(databasePath);
   done();
 
-  step(6, 'passage en journal WAL');
+  step(9, 'passage en journal WAL');
   done(String(db.pragma('journal_mode = WAL', { simple: true })));
 
-  step(7, "contrôle d'intégrité");
+  step(10, "contrôle d'intégrité");
   done(String(db.pragma('integrity_check', { simple: true })));
 
-  step(8, 'lecture des migrations appliquées');
+  step(11, 'lecture des migrations appliquées');
   const table = db
     .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'schema_migrations'")
     .get();
