@@ -5,12 +5,39 @@ import { loadEnv } from './env.js';
 import { runMigrations } from './migrate.js';
 import { deleteExpiredSessions } from './auth/sessions.js';
 
+/**
+ * Le coffre vit hors du depot et hors de la racine web, en 700.
+ * Le dossier vient souvent d'un montage : on n'en est alors pas proprietaire et
+ * poser les permissions echoue. Ce n'est bloquant que si l'on ne peut pas y
+ * ecrire, et dans ce cas le message dit quoi faire au lieu de boucler sur EPERM.
+ */
+function ensureDocumentsDir(directory: string): void {
+  fs.mkdirSync(directory, { recursive: true, mode: 0o700 });
+
+  try {
+    if ((fs.statSync(directory).mode & 0o777) !== 0o700) fs.chmodSync(directory, 0o700);
+  } catch {
+    console.warn(`[coffre] permissions de ${directory} laissees telles quelles : le serveur n'en est pas proprietaire.`);
+  }
+
+  try {
+    fs.accessSync(directory, fs.constants.W_OK | fs.constants.X_OK);
+  } catch {
+    const uid = typeof process.getuid === 'function' ? process.getuid() : null;
+    throw new Error(
+      [
+        `Le dossier des documents n'est pas accessible en ecriture : ${directory}`,
+        `  Le serveur tourne en uid ${uid ?? 'inconnu'}.`,
+        `  En Docker : chown -R 1000:1000 ${directory}`,
+      ].join('\n'),
+    );
+  }
+}
+
 function main(): void {
   const env = loadEnv();
 
-  // Le coffre vit hors du depot et hors de la racine web, en 700.
-  fs.mkdirSync(env.DOCUMENTS_DIR, { recursive: true, mode: 0o700 });
-  fs.chmodSync(env.DOCUMENTS_DIR, 0o700);
+  ensureDocumentsDir(env.DOCUMENTS_DIR);
 
   const db = openDatabase(env.DATABASE_PATH);
   const applied = runMigrations(db);
@@ -25,7 +52,10 @@ function main(): void {
 
   const app = createApp({ db, env });
   const server = app.listen(env.PORT, () => {
+    // Un demarrage doit se lire d'un coup d'oeil : ou sont les donnees, sur quel port.
     console.log(`[http] quorex-internal ecoute sur http://127.0.0.1:${env.PORT} (${env.NODE_ENV})`);
+    console.log(`[db]   ${env.DATABASE_PATH}`);
+    console.log(`[coffre] ${env.DOCUMENTS_DIR}`);
   });
 
   const shutdown = (signal: string): void => {
